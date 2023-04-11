@@ -105,11 +105,12 @@ uint32_t rpi_get_revision(void);
 uint32_t rpi_get_model(void);
 uint32_t rpi_clock_curhz_get(uint32_t clock);
 uint32_t rpi_clock_realhz_get(uint32_t clock);
-uint32_t rpi_clock_hz_set(uint32_t clock, uint32_t hz);
+void rpi_clock_hz_set(uint32_t clock, uint32_t hz);
 uint32_t rpi_clock_maxhz_get(uint32_t clock);
 uint32_t rpi_clock_minhz_get(uint32_t clock);
 uint32_t rpi_get_memsize(void);
 uint64_t rpi_get_serialnum(void);
+void rpi_set_turbo(void);
 
 // get the temperature.
 uint32_t rpi_temp_get(void) ;
