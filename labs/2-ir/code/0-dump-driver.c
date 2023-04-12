@@ -39,7 +39,7 @@ void notmain(void) {
 
         // read values until timeout.  the values should alternate
         // (v starts = 0, then goes to 1 then 0 etc)
-        uint32_t val[255], idx,v;
+        uint32_t val[256], idx,v;
         v = 0;
         idx=0;
         while(idx < 255) {
