@@ -33,7 +33,7 @@ void notmain(void) {
     gpio_set_output(out_pin);
     gpio_write(out_pin, 0);
 
-    rpi_fork(recv_hello_thread,0);
+    // rpi_fork(recv_hello_thread,0);
     rpi_fork(xmit_hello_thread,0);
     rpi_thread_start();
     output("SUCCESS: done\n");

@@ -9,7 +9,7 @@ static void ping_pong(void *is_server) {
 
     // ugh: can't ping pong without multiple devices.
     if(is_server) {
-        output("%s: about to send 0\n", name);
+        output("%s: about to send 1\n", name);
 
         send = 1;
         ir_put8(out_pin, send);
@@ -40,7 +40,7 @@ void notmain(void) {
     gpio_write(out_pin, 0);
 
     int is_server;
-    rpi_fork(ping_pong,0)->annot = "client";
+    // rpi_fork(ping_pong,0)->annot = "client";
     rpi_fork(ping_pong,&is_server)->annot = "server";
 
     rpi_thread_start();

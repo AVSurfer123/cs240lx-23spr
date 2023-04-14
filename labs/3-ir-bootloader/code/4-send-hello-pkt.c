@@ -38,7 +38,7 @@ void notmain(void) {
     gpio_write(out_pin, 0);
 
     rpi_fork(recv_pkt_thread,0);
-    rpi_fork(xmit_pkt_thread,0);
+    // rpi_fork(xmit_pkt_thread,0);
 
     rpi_thread_start();
     output("done running\n");

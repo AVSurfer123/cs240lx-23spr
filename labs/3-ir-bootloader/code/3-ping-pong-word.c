@@ -15,7 +15,7 @@ static void ping_pong(void *is_server) {
         ir_put32(out_pin, send);
     } 
 
-    enum { ntrials = 127 };
+    enum { ntrials = 10 };
     // we expect to get back what we send + 1
     for(unsigned i = 0; i < ntrials; i++) {
         unsigned got = ir_get32(in_pin);

@@ -41,7 +41,7 @@ void notmain(void) {
     gpio_set_output(out_pin);
     gpio_write(out_pin, 0);
 
-    rpi_fork(bootload_client,0);
+    // rpi_fork(bootload_client,0);
     rpi_fork(bootload_server,0);
 
     rpi_thread_start();
