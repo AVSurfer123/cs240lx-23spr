@@ -1,4 +1,4 @@
-PROGS = test-pmu.c
+PROGS = test-pmu.c test-inst-cnt.c test-load-cnt.c
 COMMON_SRC = cache-support.S
 
 # define this if you need to give the device for your pi

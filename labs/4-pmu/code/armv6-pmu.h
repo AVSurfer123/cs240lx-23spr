@@ -11,6 +11,11 @@
 //  pmu_event1 : to get and set event1
 //  pmu_control : to get and set the control reg.
 
+cp_asm(pmu_control, p15, 0, c15, c12, 0)
+cp_asm(pmu_cycle, p15, 0, c15, c12, 1)
+cp_asm(pmu_event0, p15, 0, c15, c12, 2)
+cp_asm(pmu_event1, p15, 0, c15, c12, 3)
+
 // p 3-134 arm1176.pdf: write the PMU control register
 static inline void pmu_control_wr(uint32_t in) {
     
@@ -27,13 +32,15 @@ static inline void pmu_control_wr(uint32_t in) {
 // field from the PMU control register and 
 // returning it.
 static inline uint32_t pmu_type0(void) {
-    todo("return the current type of event0");
+    return bits_get(pmu_control_get(), 20, 27);
 }
 
 // set PMU event0 as <type> and enable it.
 static inline void pmu_enable0(uint32_t type) {
-    todo("enable event 0");
-
+    assert((type & 0xff) == type);
+    uint32_t reg = pmu_control_get();
+    reg = bits_set(reg, 20, 27, type);
+    pmu_control_wr(reg | 1);
     assert(pmu_type0() == type);
 }
 
@@ -41,13 +48,15 @@ static inline void pmu_enable0(uint32_t type) {
 // field from the PMU control register and 
 // returning it.
 static inline uint32_t pmu_type1(void) {
-    todo("return the current type of event1");
+    return bits_get(pmu_control_get(), 12, 19);
 }
 
 // set event1 as <type> and enable it.
 static inline void pmu_enable1(uint32_t type) {
     assert((type & 0xff) == type);
-    todo("enable event 1");
+    uint32_t reg = pmu_control_get();
+    reg = bits_set(reg, 12, 19, type);
+    pmu_control_wr(reg | 1);
     assert(pmu_type1() == type);
 }
 
