@@ -48,7 +48,8 @@ vec_fn_t jit_dot(uint32_t *b, unsigned n) {
     reg_t sum = reg_mk(12);
 
     // we can eliminate this if we special case the first load.
-    cp = armv6_load_imm32(cp, sum, 0);
+    // cp = armv6_load_imm32(cp, sum, 0);
+    *cp++ = armv6_mov_imm8(sum, 0);
 
     // iterate over each non-zero and generate a multiply 
     // accumlate into sum.
@@ -65,7 +66,9 @@ vec_fn_t jit_dot(uint32_t *b, unsigned n) {
                is called)
             3. use the multiply accumulate instruction.
          */
-        todo("implement this code\n");
+        *cp++ = armv6_ldr_off12(a_i, a, i*4);
+        cp = armv6_load_imm32(cp, b_i, b[i]);
+        *cp++ = armv6_mla(sum, a_i, b_i, sum);
     }
 
     // can get rid of this by changing the last instruction.

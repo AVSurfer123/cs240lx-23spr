@@ -14,7 +14,7 @@ PROGS = 4-test-ldr-off12.c
 PROGS = 2-test-imm8-rot4.c 
 PROGS = 2-test-orr-imm8-rot4.c
 
-PROGS = $(wildcard ./[01234]-*.c)
+PROGS = $(wildcard ./[3]-*.c)
 
 # CFLAGS = -I../hand-coded
 

@@ -73,7 +73,7 @@ void notmain(void) {
     enum { trials = 2 };
     for(unsigned n = 32; n < 1024; n *= 4) {
         for(unsigned percent_0 = 0; percent_0 < 100;  percent_0 += 15) {
-            run_vector_test(trials, n, percent_0,0);
+            run_vector_test(trials, n, percent_0, 0);
             jit_free_all();
         }
     }
