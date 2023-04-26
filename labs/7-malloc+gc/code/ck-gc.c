@@ -148,7 +148,22 @@ static void mark(const char *where, uint32_t *p, uint32_t *e) {
     assert(aligned(p,4));
     assert(aligned(e,4));
 
-    todo("implement the rest\n");
+    for (uint32_t* start = p; start < e; start++) {
+        hdr_t* h = is_ptr(*start);
+        if (h) {
+            if ((void*) *start == ck_data_start(h)) {
+                h->refs_start++;
+            }
+            else {
+                h->refs_middle++;
+            }
+
+            if (h->mark == 0) {
+                h->mark = 1;
+                mark(where, ck_data_start(h), ck_data_end(h));
+            }
+        }
+    }
 }
 
 // do a sweep, warning about any leaks.
@@ -161,8 +176,14 @@ static unsigned sweep_leak(int warn_no_start_ref_p) {
     //  1. if there are no pointers to a block at all: give an error.
     //  2. if there are only refs to the middle and <warn_no_start_ref_p>
     //     is true, give a maybe leak.
-    for(hdr_t *h = ck_first_alloc(); h; h = ck_next_hdr(h), nblocks++)
-        todo("implement the rest\n");
+    for(hdr_t *h = ck_first_alloc(); h; h = ck_next_hdr(h), nblocks++) {
+        if (h->mark == 0) {
+            errors++;
+        }
+        else if (h->refs_start == 0 && warn_no_start_ref_p) {
+            maybe_errors++;
+        }
+    }
 
 	trace("\tGC:Checked %d blocks.\n", nblocks);
 	if(!errors && !maybe_errors)
@@ -187,14 +208,19 @@ static void mark_all(void) {
     // get all the registers.
     uint32_t regs[16];
     dump_regs(regs);
-    todo("kill caller-saved registers so we don't falsely suppress errors.\n");
+    // todo("kill caller-saved registers so we don't falsely suppress errors.\n");
+    regs[0] = 0;
+    regs[1] = 0;
+    regs[2] = 0;
+    regs[3] = 0;
+    regs[12] = 0;
 
     mark("regs", regs, &regs[14]);
 
     // get the start of the stack (see libpi/staff-start.S)
     // and sweep up from the current stack pointer (from <regs>)
     uint32_t *stack_top = (void*)STACK_ADDR;
-    todo("get sp and mark stack\n");
+    mark("stack", (uint32_t*) regs[13], stack_top);
 
 
     // sweep zero-initialized data <bss> and non-zero 
@@ -216,7 +242,16 @@ static unsigned sweep_free(void) {
 	output("---------------------------------------------------------\n");
 	output("compacting:\n");
 
-    todo("sweep through allocated list: free any block that has no pointers\n");
+    // todo("sweep through allocated list: free any block that has no pointers\n");
+    for(hdr_t *h = ck_first_alloc(); h; nblocks++) {
+        if (h->mark == 0 && h->state == ALLOCED) {
+            nfreed++;
+            nbytes_freed += ck_nbytes(h);
+            hdr_t* next = ck_next_hdr(h);
+            ckfree(ck_data_start(h));
+            h = next;
+        }
+    }
 
 	trace("\tGC:Checked %d blocks, freed %d, %d bytes\n", nblocks, nfreed, nbytes_freed);
 

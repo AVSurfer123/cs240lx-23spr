@@ -25,6 +25,26 @@ hdr_t *ck_ptr_is_alloced(void *ptr) {
     return 0;
 }
 
+static void list_remove(hdr_t **l, hdr_t *h) {
+    assert(l);
+    hdr_t *prev = *l;
+    
+    if(prev == h) {
+        *l = h->next;
+        return;
+    }
+
+    hdr_t *p;
+    while((p = ck_next_hdr(prev))) {
+        if(p == h) {
+            prev->next = p->next;
+            return;
+        }
+        prev = p;
+    }
+    panic("did not find %p in list\n", h);
+}
+
 /***********************************************************************
  * implement the rest
  */
@@ -35,7 +55,7 @@ unsigned ck_ptr_in_block(hdr_t *h, void *ptr) {
         panic("should only have allocated blocks: sdtate=%d\n", h->state);
         return 0;
     }
-    todo("implement this [simple]\n");
+    return ck_data_start(h) <= ptr && ptr < ck_data_end(h);
 }
 
 
@@ -52,7 +72,7 @@ void (ckfree)(void *addr, src_loc_t l) {
     assert(ck_ptr_is_alloced(addr));
     h->state = FREED;
 
-    todo("implement the rest\n");
+    list_remove(&alloc_list, h);
     kr_free(h);
 }
 
@@ -71,5 +91,22 @@ void *(ckalloc)(uint32_t nbytes, src_loc_t l) {
     h->alloc_loc = l;
     h->block_id = block_id++;
 
-    todo("implement the rest\n");
+    // hdr_t* ptr = ck_first_alloc();
+    // printk("first alloc %x, ptr %x, h %x end %x\n",alloc_list, ptr, h, ck_data_end(h));
+    // if (!ptr) {
+    //     alloc_list = h;
+    //     return ck_data_start(h);
+    // }
+    // while (1) {
+    //     hdr_t* next = ck_next_hdr(ptr);
+    //     printk("next %x\n", next);
+    //     if (!next) {
+    //         break;
+    //     }
+    //     ptr = next;
+    // }
+    // ptr->next = h;
+    h->next = alloc_list;
+    alloc_list = h;
+    return ck_data_start(h);
 }
