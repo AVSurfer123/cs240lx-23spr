@@ -66,6 +66,8 @@ int imu_rd_n(uint8_t addr, uint8_t base_reg, uint8_t *v, uint32_t n) {
 
 // IMU + accel register map
 enum {
+    CONFIG = 26, 
+
     // p6, p14
     accel_config_reg = 0x1c,
     accel_off = 3,
@@ -73,7 +75,7 @@ enum {
     USER_CTRL = 0x6a,   // p 39
 
     // p31,32
-    ACCEL_XOUT_H = 0x3b,
+    accel_xout_h = 0x3b,
     accel_xout_l = 0x3c,
     accel_yout_h = 0x3d,
     accel_yout_l = 0x3e,
@@ -95,7 +97,12 @@ enum {
 // combines a 8-bit <lo> and 8-bit <hi> from the sensor into
 // a single signed 16-bit value.
 static short mg_raw(uint8_t lo, uint8_t hi) {
-    todo("combine both bytes (make sure sign extended)");
+    // todo("combine both bytes (make sure sign extended)");
+    short ret = hi << 8 | lo;
+    if (hi == 0 && (lo >> 7)) {
+        ret |= 0xFF;
+    }
+    return ret;
 }
 
 // returns a scaled milligauss value given the
@@ -116,8 +123,7 @@ imu_xyz_t accel_scale(accel_t *h, imu_xyz_t xyz) {
 
 // extension: do this using interrupts or fifo.
 int accel_has_data(const accel_t *h) {
-    todo("check that have data");
-    return 1;
+    return imu_rd(h->addr, INT_STATUS) & 1;
 }
 
 /******************************************************************
@@ -126,7 +132,7 @@ int accel_has_data(const accel_t *h) {
 static void test_mg(int expected, uint8_t l, uint8_t h, unsigned g) {
     int s_i = mg_scaled(mg_raw(h,l),g);
 
-    output("expect = %d, got %d", expected, s_i);
+    output("expect = %d, got %d ", expected, s_i);
     if(expected == s_i)
         output("success!\n");
     else
@@ -156,9 +162,13 @@ accel_t mpu6050_accel_init(uint8_t addr, unsigned accel_g) {
     test_mg(-350, 0xe9, 0x97, 2);
     test_mg(-1000, 0xbf, 0xf7, 2);
 
-    todo("setup accel with 2g");
+    imu_wr(addr, CONFIG, 4);
+    delay_ms(100);
 
-    output("accel_config_reg=%b\n", imu_rd(addr, accel_config_reg));
+    imu_wr(addr, accel_config_reg, accel_g << 3);
+    delay_ms(100);
+
+    output("accel_config_reg=%x\n", imu_rd(addr, accel_config_reg));
     return (accel_t) { .addr = addr, .g = g, .hz = 20 };
 }
 
@@ -185,9 +195,9 @@ void mpu6050_reset(uint8_t addr) {
     // if you do *NOT* do this, then the device we have does not work.
     // according to my reading of the data sheet, the value of 0x6b should
     // be 0 after reset.  so i don't get this.
-    todo("clear sleep mode");
-
+    imu_wr(addr, PWR_MGMT_1, 0);
     delay_ms(100);
+    printk("pwr register: %x\n", imu_rd(addr, PWR_MGMT_1));
 
     // page 39: USER_CTRL (register 0x6a): reset:
     //   - the signal path 
@@ -195,11 +205,12 @@ void mpu6050_reset(uint8_t addr) {
     //   - fifo
     // not sure if redundant after device reset --- datasheet
     // unclear --- so we do to be sure.
-    todo("reset all these");
-
+    imu_wr(addr, USER_CTRL, 0b111);
     delay_ms(100);
 
-    todo("enable interrupts so you can tell that data is ready");
+    imu_wr(addr, INT_ENABLE, 1);
+    delay_ms(100);
+    assert(imu_rd(addr, INT_ENABLE) == 1);
 }
 
 
@@ -236,7 +247,10 @@ imu_xyz_t accel_rd(const accel_t *h) {
     int y =  0;
     int z =  0;
 
-    todo("implement burst reads and return as unscaled x,y,z");
+    // todo("implement burst reads and return as unscaled x,y,z");
+    x = mg_raw(imu_rd(addr, accel_xout_l), imu_rd(addr, accel_xout_h));
+    y = mg_raw(imu_rd(addr, accel_yout_l), imu_rd(addr, accel_yout_h));
+    z = mg_raw(imu_rd(addr, accel_zout_l), imu_rd(addr, accel_zout_h));
     
     return xyz_mk(x,y,z);
 }
@@ -249,16 +263,16 @@ imu_xyz_t accel_rd(const accel_t *h) {
 
 // gyro registers.
 enum {
-    // p13, p6
-    CONFIG = 28, 
-    // p14, p6
-    GYRO_CONFIG = 29, 
-
     // p6, p14
     gyro_config_reg = 0x1b,
 
     // p7
-    GYRO_XOUT_H = 67,
+    gyro_xout_h = 67,
+    gyro_xout_l = 68,
+    gyro_yout_h = 69,
+    gyro_yout_l = 70,
+    gyro_zout_h = 71,
+    gyro_zout_l = 72,
 };
 
 static inline int 
@@ -340,14 +354,17 @@ gyro_t mpu6050_gyro_init(uint8_t addr, unsigned gyro_dps) {
     default: panic("invalid dps: %b\n", dps);
     }
 
-    todo("initialize the gyro");
+    imu_wr(addr, CONFIG, 4);
+    delay_ms(100);
+
+    imu_wr(addr, gyro_config_reg, gyro_dps << 3);
+    delay_ms(100);
     return (gyro_t) { .addr = addr, .dps = dps,  };
 }
 
 // use int or fifo to tell when data.
 int gyro_has_data(const gyro_t *h) {
-    todo("implement this");
-    return 1;
+    return imu_rd(h->addr, INT_STATUS) & 1;
 }
 
 // return a single raw gyro reading.
@@ -360,8 +377,11 @@ imu_xyz_t gyro_rd(const gyro_t *h) {
     while(!gyro_has_data(h))
         ;
 
-    int x=0,y=0,z=00;
+    int x=0,y=0,z=0;
 
-    todo("implement this");
+    x = mg_raw(imu_rd(addr, gyro_xout_l), imu_rd(addr, gyro_xout_h));
+    y = mg_raw(imu_rd(addr, gyro_yout_l), imu_rd(addr, gyro_yout_h));
+    z = mg_raw(imu_rd(addr, gyro_zout_l), imu_rd(addr, gyro_zout_h));
+    
     return xyz_mk(x,y,z);
 }

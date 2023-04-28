@@ -25,7 +25,7 @@ void notmain(void) {
 
     enum { 
         WHO_AM_I_REG      = 0x75, 
-        WHO_AM_I_VAL = 0x68,       
+        WHO_AM_I_VAL = 0x70,       // 0x68 for MPU-6050, 0x70 for MPU-9250
     };
 
     uint8_t v = imu_rd(dev_addr, WHO_AM_I_REG);
@@ -44,7 +44,7 @@ void notmain(void) {
     accel_t h = mpu6050_accel_init(dev_addr, accel_2g);
     assert(h.g==2);
     
-#if 0
+#if 1
     // can comment this out.  am curious what rate we get for everyone.
     output("computing samples per second\n");
     uint32_t sum = 0, s, e;

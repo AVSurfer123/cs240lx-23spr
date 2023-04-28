@@ -1,8 +1,8 @@
 PROGS = driver-gyro.c
 PROGS = driver-accel.c
 
-# COMMON_SRC = mpu-6050.c
-STAFF_OBJS = staff-i2c.o staff-mpu-6050.o
+COMMON_SRC = mpu-6050.c
+STAFF_OBJS = staff-faster-i2c.o
 
 # define this if you need to give the device for your pi
 TTYUSB = 

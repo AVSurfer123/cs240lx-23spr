@@ -25,7 +25,7 @@ void notmain(void) {
 
     enum { 
         WHO_AM_I_REG      = 0x75, 
-        WHO_AM_I_VAL = 0x68,       
+        WHO_AM_I_VAL = 0x70,       // 0x68 for MPU-6050, 0x70 for MPU-9250
     };
 
     uint8_t v = imu_rd(dev_addr, WHO_AM_I_REG);
@@ -41,7 +41,7 @@ void notmain(void) {
     gyro_t g = mpu6050_gyro_init(dev_addr, gyro_500dps);
     assert(g.dps==500);
 
-    for(int i = 0; i < 10; i++) {
+    for(int i = 0; i < 100; i++) {
         imu_xyz_t xyz_raw = gyro_rd(&g);
         output("reading gyro %d\n", i);
         xyz_print("\traw", xyz_raw);
