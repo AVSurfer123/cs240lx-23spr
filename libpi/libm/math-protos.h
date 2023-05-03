@@ -21,6 +21,8 @@ double sin(double x);
 double atan(double x);
 /* e_atan2.c */
 double atan2(double y, double x);
+/* e_asin.c */
+double asin(double x);
 /* s_round.c */
 double round(double x);
 /* e_sqrt.c */
