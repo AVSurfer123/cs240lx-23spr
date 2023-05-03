@@ -1,6 +1,6 @@
 # list out the driver program source 
 PROGS = 2-neopix.c 1-blink.c  0-timing-check.c # simple.c
-PROGS = 0-timing-check.c 
+PROGS = 2-neopix.c 
 
 
 # your source, shared by driver code.

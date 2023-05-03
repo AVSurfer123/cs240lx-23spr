@@ -18,7 +18,7 @@ void place_cursor(neo_t h, int i) {
 }
 
 void notmain(void) {
-    enable_cache(); 
+    caches_enable(); 
     gpio_set_output(pix_pin);
 
     // make sure when you implement the neopixel 
@@ -30,10 +30,11 @@ void notmain(void) {
     // does 10 increasingly faster loops.
     for(int j = 0; j < 10; j++) {
         output("loop %d\n", j);
-        for(int i = 0; i < npixels; i++) {
+        for(int i = 2; i < npixels; i++) {
             place_cursor(h,i);
             delay_ms(10-j);
         }
     }
+    neopix_clear(h);
     output("done!\n");
 }
