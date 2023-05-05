@@ -25,6 +25,8 @@ double atan2(double y, double x);
 double asin(double x);
 /* s_round.c */
 double round(double x);
+/* s_roundf.c */
+float roundf(float x);
 /* e_sqrt.c */
 double sqrt(double x);
 /* e_atan2f.c */
@@ -35,3 +37,6 @@ float asinf(float x);
 float fabsf(float x);
 /* s_atanf.c */
 float atanf(float x);
+
+float fminf(float, float);
+float fmaxf(float, float);

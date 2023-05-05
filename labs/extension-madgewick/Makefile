@@ -11,6 +11,8 @@ BOOTLOADER = my-install
 # uncomment if you want it to automatically run.
 RUN=1
 
+LIBS += $(LIBM)
+
 #LIBS += ./libgcc.a
 #LIB_POST := ./libgcc.a
 

@@ -112,7 +112,7 @@ extern const union __nan_un {
 #define	FP_NORMAL	0x04
 #define	FP_SUBNORMAL	0x08
 #define	FP_ZERO		0x10
-#if 0
+#if 1
 #define	fpclassify(x) \
     ((sizeof (x) == sizeof (float)) ? __fpclassifyf(x) \
     : (sizeof (x) == sizeof (double)) ? __fpclassifyd(x) \

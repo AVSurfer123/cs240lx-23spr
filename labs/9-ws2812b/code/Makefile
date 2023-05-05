@@ -14,4 +14,7 @@ RUN = 1
 
 DEPS = ./Makefile
 
+USE_FP = 1
+LIBS += $(LIBM)
+
 include $(CS240LX_2023_PATH)/libpi/mk/Makefile.template
