@@ -1,8 +1,4 @@
 #include "rpi.h"
-#include "rpi-interrupts.h"
-#include "rpi-armtimer.h"
-#include "timer-interrupt.h"
-#include "rpi-inline-asm.h"
 
 // cycle counter routines.
 #include "cycle-count.h"
@@ -38,13 +34,9 @@ static inline int gpio_read_raw(unsigned pin) {
     return ((*(volatile uint32_t*) gpio_lev0) >> pin) & 1;
 }
 
-static unsigned start;
-static unsigned max_cyc;
-static int run;
-
-
 // implement this code and tune it.
-unsigned scope(unsigned pin, log_ent_t *l, unsigned n_max, unsigned max_cycles) {
+unsigned 
+scope(unsigned pin, log_ent_t *l, unsigned n_max, unsigned max_cycles) {
     unsigned v1, v0 = gpio_read_raw(pin);
 
     // spin until the pin changes.
@@ -53,43 +45,29 @@ unsigned scope(unsigned pin, log_ent_t *l, unsigned n_max, unsigned max_cycles) 
     v0 = v1;
 
     // when we started sampling 
-    start = cycle_cnt_read();
-    max_cyc = max_cycles;
-    run = 1;
+    unsigned start = cycle_cnt_read(), t = start;
 
     // sample until record max samples or until exceed <max_cycles>
     unsigned n = 0;
-    while(run) {      
+    for(; n < n_max;) {      
+        t = cycle_cnt_read();
 
         // write this code first: record sample when the pin
         // changes.  then start tuning the whole routine.
         if((v1 = gpio_read_raw(pin)) != v0) {
-            l[n] = (log_ent_t) {v0, cycle_cnt_read() - start};
+            l[n] = (log_ent_t) {v0, t - start};
             v0 = v1;
             n++;
+        }
 
-            if (n == n_max) {
-                return n;
-            }
+        // exit when we have run too long.
+        if((t - start) > max_cycles)  {
+            printk("timeout! start=%d, t=%d, minux=%d\n",
+                                 start,t,t-start);
+            return n;
         }
     }
     return n;
-}
-
-void interrupt_vector(unsigned pc) {
-    printk("In interrupt\n");
-    dev_barrier();
-    if(((*(volatile uint32_t*) IRQ_basic_pending) & RPI_BASIC_ARM_TIMER_IRQ) == 0)
-        return;
-    *(volatile uint32_t*) arm_timer_IRQClear = 1;
-    dev_barrier();    
-
-    if (run) {
-        printk("In interrupt\n");
-        if (cycle_cnt_read() - start >= max_cyc) {
-            run = 0;
-        }
-    }
 }
 
 void notmain(void) {
@@ -99,12 +77,6 @@ void notmain(void) {
 
     // make sure to init cycle counter hw.
     cycle_cnt_init();
-    // caches_enable();
-
-    extern uint32_t _interrupt_table[];
-    int_init();
-    timer_interrupt_init(10000);
-    cpsr_int_enable();
 
 #   define MAXSAMPLES 32
     log_ent_t log[MAXSAMPLES];

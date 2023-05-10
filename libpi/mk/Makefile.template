@@ -155,6 +155,7 @@ endif
 	$(OCP) $*.elf -O binary $*.bin
 %.run: %.bin
 	$(BOOTLOADER) $(TTYUSB) ./$<
+	@sleep .5
 
 ifneq ($(CAN_EMIT), 0)
 emit: libs $(DEPS) $(TEST_PROGS)

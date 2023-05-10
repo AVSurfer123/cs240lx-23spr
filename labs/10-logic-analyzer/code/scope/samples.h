@@ -71,7 +71,7 @@ static void sample_ex(log_ent_t *l, unsigned n, unsigned cyc_per_flip) {
     assert(!err);
 
     printk("done running example\n");
-    clean_reboot();
+    // clean_reboot();
 }
 
 #endif

@@ -2,7 +2,7 @@
 PROGS = test-gen.c
 
 # pick one of your attachment points (first or last) consistently.
-BOOTLOADER = my-install --last
+BOOTLOADER = my-install --first
 
 # set RUN = 1 if you want the code to automatically run after building.
 RUN = 1
