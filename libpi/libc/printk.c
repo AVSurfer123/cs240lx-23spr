@@ -26,7 +26,14 @@ static void __emit_float(double d) {
     }
     emit_val(10, fp_get_integral(d));
     putchar('.');
-    emit_val(10, fp_get_frac(d));
+    #define PRECISION 6
+    const static int pow10[PRECISION] = {
+        10, 100, 1000, 10000, 100000, 1000000
+    };
+    for (int i = 0; i < PRECISION; i++) {
+        emit_val(10, trunc(d * pow10[i]) % 10);
+    }
+    // emit_val(10, fp_get_frac(d));
 }
 
 #endif

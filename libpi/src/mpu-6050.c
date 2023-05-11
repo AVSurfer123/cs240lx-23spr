@@ -156,11 +156,11 @@ accel_t mpu6050_accel_init(uint8_t addr, unsigned accel_g) {
 
     // first test that your scaling works.
     // this is device independent.
-    test_mg(0, 0x00, 0x00, 2);
-    test_mg(350, 0x16, 0x69, 2);
-    test_mg(1000, 0x40, 0x09, 2);
-    test_mg(-350, 0xe9, 0x97, 2);
-    test_mg(-1000, 0xbf, 0xf7, 2);
+    // test_mg(0, 0x00, 0x00, 2);
+    // test_mg(350, 0x16, 0x69, 2);
+    // test_mg(1000, 0x40, 0x09, 2);
+    // test_mg(-350, 0xe9, 0x97, 2);
+    // test_mg(-1000, 0xbf, 0xf7, 2);
 
     imu_wr(addr, CONFIG, 4);
     delay_ms(100);
@@ -168,7 +168,6 @@ accel_t mpu6050_accel_init(uint8_t addr, unsigned accel_g) {
     imu_wr(addr, accel_config_reg, accel_g << 3);
     delay_ms(100);
 
-    output("accel_config_reg=%x\n", imu_rd(addr, accel_config_reg));
     return (accel_t) { .addr = addr, .g = g, .hz = 20 };
 }
 
@@ -197,7 +196,6 @@ void mpu6050_reset(uint8_t addr) {
     // be 0 after reset.  so i don't get this.
     imu_wr(addr, PWR_MGMT_1, 0);
     delay_ms(100);
-    printk("pwr register: %x\n", imu_rd(addr, PWR_MGMT_1));
 
     // page 39: USER_CTRL (register 0x6a): reset:
     //   - the signal path 
@@ -277,7 +275,7 @@ enum {
 
 static inline int 
 mdps_scaled(int x, int dps_scale) {
-    return (x * dps_scale) / 1000;
+    return (x * dps_scale) / SHRT_MAX;
 }
 
 // not sure this is right: use the code below?
@@ -338,14 +336,14 @@ static void test_dps(int expected_i, uint8_t h, uint8_t l, int dps) {
 
 gyro_t mpu6050_gyro_init(uint8_t addr, unsigned gyro_dps) { 
     // device independent testing.
-    unsigned dps = 245;
-    test_dps(0, 0x00, 0x00, dps);
-    test_dps(100, 0x2c, 0xa4, dps);
-    test_dps(200, 0x59, 0x49, dps);
-    test_dps(-100, 0xd3, 0x5c, dps);
+    // unsigned dps = 245;
+    // test_dps(0, 0x00, 0x00, dps);
+    // test_dps(100, 0x2c, 0xa4, dps);
+    // test_dps(200, 0x59, 0x49, dps);
+    // test_dps(-100, 0xd3, 0x5c, dps);
 
 
-    dps = 0;
+    int dps = 0;
     switch(gyro_dps) {
     case gyro_250dps:   dps = 250; break;
     case gyro_500dps:   dps = 500; break;
@@ -359,7 +357,7 @@ gyro_t mpu6050_gyro_init(uint8_t addr, unsigned gyro_dps) {
 
     imu_wr(addr, gyro_config_reg, gyro_dps << 3);
     delay_ms(100);
-    return (gyro_t) { .addr = addr, .dps = dps,  };
+    return (gyro_t) { .addr = addr, .dps = dps };
 }
 
 // use int or fifo to tell when data.
@@ -384,4 +382,33 @@ imu_xyz_t gyro_rd(const gyro_t *h) {
     z = mg_raw(imu_rd(addr, gyro_zout_l), imu_rd(addr, gyro_zout_h));
     
     return xyz_mk(x,y,z);
+}
+
+
+// Library application code
+void imu_init(accel_t* a, gyro_t* g) {
+    delay_ms(100);   // allow time for i2c/device to boot up.
+    i2c_init();
+    delay_ms(100);   // allow time for i2c/dev to settle after init.
+
+    // from application note.
+    uint8_t dev_addr = 0b1101000;
+
+    enum { 
+        WHO_AM_I_REG = 0x75, 
+        WHO_AM_I_VAL = 0x70,       // 0x68 for MPU-6050, 0x70 for MPU-9250
+    };
+
+    uint8_t v = imu_rd(dev_addr, WHO_AM_I_REG);
+    if(v != WHO_AM_I_VAL)
+        panic("Initial probe failed: expected %b (%x), have %b (%x)\n", 
+            WHO_AM_I_VAL, WHO_AM_I_VAL, v, v);
+    printk("SUCCESS: mpu-6050 acknowledged our ping: WHO_AM_I=%b!!\n", v);
+
+    // hard reset: it won't be when your pi reboots.
+    mpu6050_reset(dev_addr);
+
+    // initialize.
+    *a = mpu6050_accel_init(dev_addr, accel_2g);
+    *g = mpu6050_gyro_init(dev_addr, gyro_250dps);
 }

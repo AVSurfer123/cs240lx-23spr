@@ -5,7 +5,7 @@ TARGET= libm-pi.a
 # directory.   it's usually just a matter of adding the .o here (possibly pulling
 # in additional .o dependencies).   we do it conservatively to attempt to minimize
 # bad interactions with libpi.
-LIB_OBJS = s_cos.o k_cos.o k_sin.o e_rem_pio2.o k_rem_pio2.o s_scalbn.o s_floor.o s_copysign.o s_fabs.o s_sin.o s_atan.o e_atan2.o s_round.o e_sqrt.o e_atan2f.o e_asinf.o s_fabsf.o s_atanf.o e_sqrtf.o s_cosf.o k_cosf.o k_sinf.o e_asin.o s_roundf.o s_fmaxf.o s_fminf.o s_isfinite.o s_floorf.o
+LIB_OBJS = s_cos.o k_cos.o k_sin.o e_rem_pio2.o k_rem_pio2.o s_scalbn.o s_floor.o s_copysign.o s_fabs.o s_sin.o s_atan.o e_atan2.o s_round.o e_sqrt.o e_atan2f.o e_asinf.o s_fabsf.o s_atanf.o e_sqrtf.o s_cosf.o k_cosf.o k_sinf.o e_asin.o s_roundf.o s_fmaxf.o s_fminf.o s_isfinite.o s_floorf.o s_fmax.o s_fmin.o
 
 LIB_OBJS += e_powf.o
 LIB_OBJS += s_sinf.o

@@ -78,4 +78,7 @@ gyro_t mpu6050_gyro_init(uint8_t addr, unsigned gyro_dps);
 imu_xyz_t gyro_rd(const gyro_t *h);
 
 imu_xyz_t gyro_scale(gyro_t *h, imu_xyz_t xyz);
+
+void imu_init(accel_t* a, gyro_t* g);
+
 #endif
