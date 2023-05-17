@@ -4,5 +4,10 @@ module mux
         input logic sel,
         output logic out
     );
-    // TODO
+    always_comb begin
+        if (sel) 
+            out = a;
+        else 
+            out = b; 
+    end
 endmodule
