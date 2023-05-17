@@ -388,7 +388,8 @@ imu_xyz_t gyro_rd(const gyro_t *h) {
 // Library application code
 void imu_init(accel_t* a, gyro_t* g) {
     delay_ms(100);   // allow time for i2c/device to boot up.
-    i2c_init();
+    // i2c_init();
+    i2c_init_clk_div(130);
     delay_ms(100);   // allow time for i2c/dev to settle after init.
 
     // from application note.

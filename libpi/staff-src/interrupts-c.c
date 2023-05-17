@@ -23,22 +23,46 @@ uint32_t set_all_interrupts_off(void) {
 }
 
 // this is obsolete.
-void int_init(void) {
-    bcm_set_interrupts_off();
+// void int_init(void) {
+//     bcm_set_interrupts_off();
 
-    /*
-     * Copy in interrupt vector table and FIQ handler _table and _table_end
-     * are symbols defined in the interrupt assembly file, at the beginning
-     * and end of the table and its embedded constants.
-     */
-    extern unsigned _interrupt_table;
-    extern unsigned _interrupt_table_end;
+//     /*
+//      * Copy in interrupt vector table and FIQ handler _table and _table_end
+//      * are symbols defined in the interrupt assembly file, at the beginning
+//      * and end of the table and its embedded constants.
+//      */
+//     extern unsigned _interrupt_table;
+//     extern unsigned _interrupt_table_end;
 
-    // where the interrupt handlers go.
-#   define RPI_VECTOR_START  0
-    unsigned *dst = (void*)RPI_VECTOR_START,
-                 *src = &_interrupt_table,
-                 n = &_interrupt_table_end - src;
-    for(int i = 0; i < n; i++)
-        dst[i] = src[i];
+//     // where the interrupt handlers go.
+// #   define RPI_VECTOR_START  0
+//     unsigned *dst = (void*)RPI_VECTOR_START,
+//                  *src = &_interrupt_table,
+//                  n = &_interrupt_table_end - src;
+//     for(int i = 0; i < n; i++)
+//         dst[i] = src[i];
+// }
+
+#include "vector-base.h"
+
+void* int_vec_reset(void *vec) {
+    return vector_base_reset(vec);
+}
+
+void int_vec_init(void *v) {
+    // turn off system interrupts
+    cpsr_int_disable();
+
+    //  BCM2835 manual, section 7.5 , 112
+    dev_barrier();
+    PUT32(Disable_IRQs_1, 0xffffffff);
+    PUT32(Disable_IRQs_2, 0xffffffff);
+    dev_barrier();
+
+    vector_base_set(v);
+}
+
+void int_init() {
+    extern uint32_t _interrupt_table[];
+    int_vec_init(_interrupt_table);
 }

@@ -7,7 +7,6 @@
 
 .align 5; 
 .globl _interrupt_table
-.globl _interrupt_table_end
 _interrupt_table:
     b unhandled_reset
     b unhandled_undefined_instruction
@@ -17,4 +16,3 @@ _interrupt_table:
     b unhandled_reset // unused
     b unhandled_interrupt
     b unhandled_fiq
-_interrupt_table_end:

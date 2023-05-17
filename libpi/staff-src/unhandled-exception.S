@@ -41,7 +41,7 @@ MK_TRAMPOLINE(unhandled_reset,            4, reset_vector)
 MK_TRAMPOLINE(unhandled_undefined_instruction,            4, undefined_instruction_vector)
 MK_TRAMPOLINE(unhandled_prefetch_abort,   4, prefetch_abort_vector)
 MK_TRAMPOLINE(unhandled_data_abort,       8, data_abort_vector)
-MK_TRAMPOLINE(unhandled_interrupt,        4, int_vector)
+MK_TRAMPOLINE(unhandled_interrupt,        4, interrupt_vector)
 MK_TRAMPOLINE(unhandled_swi,              4, syscall_vector)
 MK_TRAMPOLINE(unhandled_fiq,              4, fiq_vector)
 

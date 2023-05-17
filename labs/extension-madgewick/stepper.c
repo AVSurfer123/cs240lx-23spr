@@ -1,8 +1,8 @@
 #include "stepper.h"
 #include "bit-support.h"
 
-#define DIR 20
-#define STEP 21
+#define DIR 16
+#define STEP 17
 
 #define MS1 6
 #define MS2 5

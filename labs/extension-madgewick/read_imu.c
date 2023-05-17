@@ -84,6 +84,7 @@ angles_t calc_tilt(angles_t accel) {
 
 
 void notmain() {
+    caches_enable();
     stepper_init();
     printk("Initializing IMU...\n");
     accel_t a;
@@ -113,7 +114,7 @@ void notmain() {
     // }
 
     double kp = -.01; // -.04
-    double ki = -.0001; // .0005
+    double ki = -.0002; // .0005
     double total_error = 0;
 
     double last_time = timer_get_usec() / 1000000.0;
