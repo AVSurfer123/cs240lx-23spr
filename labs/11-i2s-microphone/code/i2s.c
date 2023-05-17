@@ -2,6 +2,8 @@
 #include "bit-support.h"
 #include "i2s.h"
 
+pcm_t *p = (void*)0x20203000;
+
 struct pcm_div {
     uint32_t divi, divf, mash;
 };
@@ -9,7 +11,7 @@ struct pcm_div {
 // lets us hardcode and be really sure we did the right calculation.
 struct pcm_div clock_to_div(uint32_t clock) {
     switch(clock) {
-    case 44100: return (struct pcm_div) { .divi = 6, .divf = 3288, .mash=3 };
+    case 44100: return (struct pcm_div) { .divi = 6, .divf = 3288, .mash=1 };
     default: panic("add the div for clock=%d\n", clock);
     }
 }
@@ -22,14 +24,27 @@ void pcm_clock_init(uint32_t clock) {
     // 1.turn off the pcm clock.
     // 2.wait til not busy.
     // 3. set the control and divisor
-    todo("implement this\n");
+    PUT32(CM_PCM_CTRL, 0);
+    while (bit_get(CM_PCM_CTRL, 7)) {
+    }
+    uint32_t ctrl = 0;
+    ctrl = bit_set(ctrl, 4);
+    ctrl = bits_set(ctrl, 0, 3, 1); // oscillator clock
+    ctrl = bits_set(ctrl, 9, 10, div.mash);
+    ctrl = bits_set(ctrl, 24, 31, 0x5a);
+    uint32_t divisor = 0;
+    divisor = bits_set(divisor, 0, 11, div.divf);
+    divisor = bits_set(divisor, 12, 23, div.divi);
+    divisor = bits_set(divisor, 24, 31, 0x5a);
+
+    PUT32(CM_PCM_DIV1, divisor);
+    PUT32(CM_PCM_CTRL, ctrl);
 
     dev_barrier();
 }
 
 static void pcm_check_initial(void) {
     dev_barrier();
-    pcm_t *p = (void*)0x20203000;
 
     // from the datasheet: p134
     if(!bit_is_on(p->cs_a, 21))
@@ -64,7 +79,9 @@ static void pcm_check_initial(void) {
 }
 
 void i2s_init(uint32_t clock) {
-    todo("set the gpio pins\n");
+    gpio_set_function(pcm_clk, GPIO_FUNC_ALT0);
+    gpio_set_function(pcm_fs, GPIO_FUNC_ALT0);
+    gpio_set_function(pcm_din, GPIO_FUNC_ALT0);
 
     // this checks the invial values from the datasheet.
     pcm_check_initial();
@@ -103,16 +120,37 @@ void i2s_init(uint32_t clock) {
     //  - FSLEN[9:0]: frame sync length [one down or one up: so half FLEN]
     //    [12]
 
-    todo("set mode_a\n");
+    p->grey = 0;
+
+    uint32_t mode = 0;
+    mode = bits_set(mode, 0, 9, 32);
+    mode = bits_set(mode, 10, 19, 63);
+    p->mode_a = mode;
 
 
     // page 131: receive config: rxc_a
-    todo("set rxc_a\n");
+    uint32_t rx = 0;
+    rx = bit_set(rx, 30);
+    rx = bits_set(rx, 16, 19, 0b1000);
+    rx = bit_set(rx, 31);
+    p->rxc_a = rx;
 
-    todo("set cs_a\n");
+    uint32_t cs = 0;
+    cs = bit_set(cs, 1);
+    cs = bit_set(cs, 25);
+    cs = bit_set(cs, 4);
+    cs = bit_set(cs, 0);
+    p->cs_a = cs;
+
     dev_barrier();
 }
 
 uint32_t i2s_get32(void) {
-    todo("read from fifo if data is present\n");
+    dev_barrier();
+    uint32_t v = 0;
+    if (bit_get(p->cs_a, 20)) {
+        v = p->fifo_a;
+    }
+    dev_barrier();
+    return v;
 }

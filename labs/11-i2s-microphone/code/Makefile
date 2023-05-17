@@ -1,10 +1,10 @@
 # list out the driver program source 
 PROGS = 0-clock-loopback.c
-PROGS = 1-mic-read.c
+# PROGS = 1-mic-read.c
 
 # swap if you want.
-# COMMON_SRC = i2s.c
-STAFF_OBJS = staff-i2s.o
+COMMON_SRC = i2s.c
+# STAFF_OBJS = staff-i2s.o
 
 # pick one of your attachment points (first or last) consistently.
 # BOOTLOADER = my-install --last

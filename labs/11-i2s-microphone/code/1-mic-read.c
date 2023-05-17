@@ -9,7 +9,7 @@ void notmain(void) {
     output("now hook up the i2s mic not in loopback\n");
     i2s_init(44100);
 
-    enum { N = 64, DISCARD = 256 };
+    enum { N = 1024, DISCARD = 256 };
     unsigned nsample = 0;
 
     struct mic_vals {

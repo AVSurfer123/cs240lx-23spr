@@ -3,7 +3,7 @@
 #include "i2s.h"
 
 // connect BCLK in in_clk and FS to in_fs with jumpers.
-enum { in_clk = 16, in_fs = 17 };
+enum { in_clk = 22, in_fs = 23 };
 
 static inline uint32_t gpio_read_raw(unsigned pin) {
     enum { GPIO_BASE = 0x20200000 };
