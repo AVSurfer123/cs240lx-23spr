@@ -89,7 +89,7 @@ void notmain() {
     printk("Initializing IMU...\n");
     accel_t a;
     gyro_t g;
-    imu_init(&a, &g);
+    imu_init(&a, &g, 1);
 
     printk("Calculating IMU bias...\n");
     imu_xyz_t accel_bias = calc_bias(&a, 0);

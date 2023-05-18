@@ -386,7 +386,7 @@ imu_xyz_t gyro_rd(const gyro_t *h) {
 
 
 // Library application code
-void imu_init(accel_t* a, gyro_t* g) {
+void imu_init(accel_t* a, gyro_t* g, int bigger) {
     delay_ms(100);   // allow time for i2c/device to boot up.
     // i2c_init();
     i2c_init_clk_div(130);
@@ -395,10 +395,8 @@ void imu_init(accel_t* a, gyro_t* g) {
     // from application note.
     uint8_t dev_addr = 0b1101000;
 
-    enum { 
-        WHO_AM_I_REG = 0x75, 
-        WHO_AM_I_VAL = 0x70,       // 0x68 for MPU-6050, 0x70 for MPU-9250
-    };
+    int WHO_AM_I_REG = 0x75; 
+    int WHO_AM_I_VAL = bigger ? 0x70 : 0x68;       // 0x68 for MPU-6050, 0x70 for MPU-9250
 
     uint8_t v = imu_rd(dev_addr, WHO_AM_I_REG);
     if(v != WHO_AM_I_VAL)

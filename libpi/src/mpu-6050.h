@@ -79,6 +79,7 @@ imu_xyz_t gyro_rd(const gyro_t *h);
 
 imu_xyz_t gyro_scale(gyro_t *h, imu_xyz_t xyz);
 
-void imu_init(accel_t* a, gyro_t* g);
+// bigger = 1 if MPU 9250, 0 if MPU 6050
+void imu_init(accel_t* a, gyro_t* g, int bigger);
 
 #endif

@@ -25,7 +25,7 @@ void notmain(void) {
 
     enum { 
         WHO_AM_I_REG      = 0x75, 
-        WHO_AM_I_VAL = 0x70,       // 0x68 for MPU-6050, 0x70 for MPU-9250
+        WHO_AM_I_VAL = 0x68,       // 0x68 for MPU-6050, 0x70 for MPU-9250
     };
 
     uint8_t v = imu_rd(dev_addr, WHO_AM_I_REG);
