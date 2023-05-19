@@ -12,6 +12,8 @@ neo_t neopix_init(uint8_t pin, unsigned npixels);
 void neopix_write(neo_t h, uint32_t pos, uint8_t r, uint8_t g, uint8_t b);
 void neopix_flush(neo_t h);
 
+void neopix_flush_keep(neo_t h);
+
 // immediately write black/off (0,0,0) to every pixel upto 
 // pixel number <upto>
 void neopix_fast_clear(neo_t h, unsigned upto);

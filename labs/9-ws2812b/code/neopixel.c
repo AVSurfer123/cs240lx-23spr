@@ -37,6 +37,15 @@ void neopix_flush(neo_t h) {
     memset(&h->pixels, 0, sizeof(struct neo_pixel) * h->npixel);
 }
 
+void neopix_flush_keep(neo_t h) { 
+    // needs the rest of the code.
+    for (int i = 0; i < h->npixel; i++) {
+        struct neo_pixel p = h->pixels[i];
+        pix_sendpixel(h->pin, p.r, p.g, p.b);
+    }
+    pix_flush(h->pin);
+}
+
 neo_t neopix_init(uint8_t pin, unsigned npixel) {
     neo_t h;
     unsigned nbytes = sizeof *h + sizeof h->pixels[0] * npixel;
