@@ -4,13 +4,13 @@ PROGS := ./tests/4-trylock-ok-test.c
 PROGS := ./tests/5-circular-q-ok.c
 PROGS := ./tests/1-epsilon-should-fail-test.c
 PROGS := ./tests/2-increment-fail-test.c
-PROGS = $(wildcard ./tests/[1234567]*-test.c)
+PROGS = $(wildcard ./tests/[1234]*.c)
 
 COMMON_SRC = check-interleave.c  check-interleave-asm.S 
 
 # switch these for trylock
-# COMMON_SRC += syscall.c
-STAFF_OBJS += staff-syscall.o
+COMMON_SRC += syscall.c
+# STAFF_OBJS += staff-syscall.o
 
 STAFF_OBJS += staff-user-fn.o 
 STAFF_OBJS += single-step.o 

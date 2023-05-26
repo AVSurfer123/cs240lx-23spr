@@ -5,4 +5,10 @@
 *.elf
 *.list
 .vscode
+*.json
+*.vcd
+sim
+*.asc
+*.test
+.verilator
 

@@ -47,7 +47,12 @@ int syscall_vector(unsigned pc, uint32_t sys_num, uint32_t r0, uint32_t sp) {
     }
     case SYS_TRYLOCK:
     {
-            todo("implement this\n");
+            pi_lock_t* lock = (pi_lock_t*) r0;
+            if (*lock) {
+                return 0;
+            }
+            assert(*lock == 0);
+            *lock = 1;
             return 1;
     }
     case SYS_TEST:
