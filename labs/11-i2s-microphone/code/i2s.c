@@ -24,8 +24,8 @@ void pcm_clock_init(uint32_t clock) {
     // 1.turn off the pcm clock.
     // 2.wait til not busy.
     // 3. set the control and divisor
-    PUT32(CM_PCM_CTRL, 0);
-    while (bit_get(CM_PCM_CTRL, 7)) {
+    PUT32(CM_PCM_CTRL, 0x5a << 24);
+    while (bit_get(GET32(CM_PCM_CTRL), 7)) {
     }
     uint32_t ctrl = 0;
     ctrl = bit_set(ctrl, 4);
@@ -82,6 +82,7 @@ void i2s_init(uint32_t clock) {
     gpio_set_function(pcm_clk, GPIO_FUNC_ALT0);
     gpio_set_function(pcm_fs, GPIO_FUNC_ALT0);
     gpio_set_function(pcm_din, GPIO_FUNC_ALT0);
+    dev_barrier();
 
     // this checks the invial values from the datasheet.
     pcm_check_initial();
@@ -143,14 +144,15 @@ void i2s_init(uint32_t clock) {
     p->cs_a = cs;
 
     dev_barrier();
+
+    // printk("Mode %x Rx %x Control %x\n", GET32(0x20203008), GET32(0x2020300C), GET32(0x20203000));
 }
 
 uint32_t i2s_get32(void) {
     dev_barrier();
-    uint32_t v = 0;
-    if (bit_get(p->cs_a, 20)) {
-        v = p->fifo_a;
+    while (!bit_get(p->cs_a, 20)) {
     }
+    uint32_t v = p->fifo_a;
     dev_barrier();
     return v;
 }

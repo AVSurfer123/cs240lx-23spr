@@ -1,13 +1,16 @@
 # list out the driver program source 
-PROGS = 0-clock-loopback.c
-# PROGS = 1-mic-read.c
+# PROGS = 0-clock-loopback.c
+PROGS = 1-mic-read.c
+PROGS = $(wildcard tests/1*.c)
 
 # swap if you want.
-COMMON_SRC = i2s.c
+COMMON_SRC = i2s.c fft.c
 # STAFF_OBJS = staff-i2s.o
 
 # pick one of your attachment points (first or last) consistently.
 # BOOTLOADER = my-install --last
+
+OPT_LEVEL = -O3
 
 # set RUN = 1 if you want the code to automatically run after building.
 RUN = 1
