@@ -17,25 +17,27 @@ void notmain(void) {
     enable_cache();
     i2s_init(44100);
 
-    int16_t real[FFT_LEN] = {0};
-    int16_t imag[FFT_LEN] = {0};
+    double real[FFT_LEN] = {0};
+    double imag[FFT_LEN] = {0};
 
     uint32_t start= timer_get_usec();
-    while (timer_get_usec() - start < 15e6) {
+    while (timer_get_usec() - start < 10e6) {
 
         // real samples: set imaginary part to 0
         for (int i = 0; i < FFT_LEN; i++) {
-            real[i] = to_q15(i2s_read_sample());
+            uint32_t x = i2s_read_sample();
+            real[i] = convert_sample(x);
+            // printk("Sample %d: %d %f\n", i, x, real[i]);
             imag[i] = 0;
         }
 
-        fft_fixed_cfft(real, imag, LOG2_FFT_LEN, 0);
+        fft(FFT_LEN, real, imag);
 
-        int16_t data_max = 0;
-        int16_t data_max_idx = 0;
+        double data_max = 0;
+        double data_max_idx = 0;
 
         for (int i = 0; i < FFT_LEN; i++) {
-            int32_t mag = fft_fixed_mul_q15(real[i], real[i]) + fft_fixed_mul_q15(imag[i], imag[i]);
+            double mag = sqrt(real[i] * real[i] + imag[i] * imag[i]);
             // attempt to reject harmonics by requiring higher frequencies to be some factor larger
             if (mag > data_max * MAX_THRESH_FACTOR) {
                 data_max = mag;
@@ -43,9 +45,9 @@ void notmain(void) {
             }
         }
 
-        int16_t freq = data_max_idx * FS / FFT_LEN;
+        double freq = data_max_idx * FS / FFT_LEN;
 
-        printk("%d\n", freq);
+        printk("%f\n", freq);
 
     }
 

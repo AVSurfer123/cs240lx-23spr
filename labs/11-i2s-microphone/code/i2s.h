@@ -113,6 +113,10 @@ typedef struct pcm {
 
 // return 32 bit value read from i2s.
 uint32_t i2s_get32(void) ;
+// Parthiv's version
+inline uint32_t i2s_read_sample(void) {
+    return i2s_get32();
+}
 
 // convert 32-bit val to signed 18-bit mic result
 static inline long 

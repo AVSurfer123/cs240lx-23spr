@@ -32,6 +32,9 @@ void notmain(void) {
 
     for (int i = 0; i < N; i++) {
         printk("%d: %d + %dj\n", i, real[i], imag[i]);
+        int sign = i % 2 == 0 ? 1 : -1;
+        assert(real[i] == 1024 * sign);
+        assert(imag[i] == 0);
     }
     printk("\n");
 

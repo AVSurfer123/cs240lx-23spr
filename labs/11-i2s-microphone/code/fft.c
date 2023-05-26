@@ -124,3 +124,44 @@ int32_t fft_fixed_rfft(int16_t *data, int32_t log2_len, unsigned inverse) {
     }
     return scale;
 }
+
+void fft(int N, double* x, double* y)
+{
+    // Base case: N = 1
+    if (N == 1)
+        return;
+
+    double even_x[N / 2];
+    double even_y[N / 2];
+    double odd_x[N / 2];
+    double odd_y[N / 2];
+
+    // Split the samples into even and odd parts
+    for (int i = 0; i < N / 2; i++)
+    {
+        even_x[i] = x[2 * i];
+        even_y[i] = y[2 * i];
+        odd_x[i] = x[2 * i + 1];
+        odd_y[i] = y[2 * i + 1];
+    }
+
+    // Recursive calls
+    fft(N / 2, even_x, even_y);
+    fft(N / 2, odd_x, odd_y);
+
+    // Combine the results
+    for (int k = 0; k < N / 2; k++)
+    {
+        double angle = -2.0 * M_PI * k / N;
+        double w_real = cos(angle);
+        double w_imag = sin(angle);
+
+        double t_real = w_real * odd_x[k] - w_imag * odd_y[k];
+        double t_imag = w_real * odd_y[k] + w_imag * odd_x[k];
+
+        x[k] = even_x[k] + t_real;
+        y[k] = even_y[k] + t_imag;
+        x[k + N / 2] = even_x[k] - t_real;
+        y[k + N / 2] = even_y[k] - t_imag;
+    }
+}

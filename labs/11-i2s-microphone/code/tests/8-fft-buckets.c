@@ -26,7 +26,7 @@
 
 void notmain(void) {
     enable_cache();
-    i2s_init();
+    i2s_init(44100);
     neo_t neo = neopix_init(NEOPIX_PIN, NEOPIX_LEN);
 
     int16_t real[FFT_LEN] = {0};
