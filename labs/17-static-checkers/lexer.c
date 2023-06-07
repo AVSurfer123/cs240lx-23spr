@@ -20,17 +20,60 @@ void lex(char *s) {
         // Note in these examples below, the first four are cases where we
         // throw away some characters (indicated by label = LEX_NONE). In the
         // final example we lex operation characters like [ and !=.
-        assert(!"unimplemented");
-        if (isspace(*s));
-        else if (prefix(s, "/*")) {
+        if (isspace(*s));                               // space
+        else if (prefix(s, "/*")) {                     // multiline comment
             for (; *s && !prefix(s, "*/"); s++);
             if (*s) s++;
-        } else if (prefix(s, "//")) {
+        } else if (prefix(s, "//")) {                   // comment
             for (; *s && *s != '\n'; s++);
-        } else if (s[0] == '#') {
-            for (; *s && *s != '\n'; s++)
+        } else if (s[0] == '#') {                       // macro
+            for (; *s && *s != '\n'; s++)   
                 s += (*s == '\\');
-        } else {
+        }
+        else if (prefix(s, "\"")) {                     // string literal
+            label = LEX_STR_LIT;
+            s++;
+            for (; *s && !prefix(s, "\""); s++) {
+                if (*s == '\\') {
+                    s++;
+                }
+            }
+            s++;
+        }
+        else if (prefix(s, "'")) {
+            label = LEX_STR_LIT;
+            s++;
+            if (*s == '\\') {
+                s++;
+            }
+            s += 2;
+        }
+        else if (isdigit(*s)) {
+            label = LEX_NUM_LIT;
+            if (*s == '0') {
+                s++;
+                if (*s == 'x') {
+                    s++;
+                    for(; *s && isxdigit(*s); s++);
+                }
+                else if (*s == 'b') {
+                    s++;
+                    for(; *s == '0' || *s == '1'; s++);
+                }
+                else {
+                    for(; *s && isdigit(*s); s++);
+                }
+            }
+            else {
+                for(; *s && isdigit(*s); s++);
+            }
+            for (; *s == 'u' || *s == 'l'; s++);
+        }
+        else if (isalpha(*s) || *s == '_') {
+            label = LEX_IDENT;
+            for(; isalnum(*s)|| *s == '_'; s++);
+        }
+        else {                                          // op
             label = LEX_OP;
             if (strchr("()[]{}.:?,;", *s))
                 s++;

@@ -21,23 +21,77 @@ struct exprmap {
 // everything working initially!).
 uint64_t lookup_exprmap(const struct exprmap set, uint64_t expr) {
     // you can return 0 if you don't find anything
-    assert(!"unimplemented");
+    for (int i = 0; i < set.n_exprs; i++) {
+        if (set.exprs[i] == expr) {
+            return set.deref_labels[i];
+        }
+    }
+    return 0;
+}
+
+struct exprmap copy_exprmap(struct exprmap old, int old_size, int new_size) {
+    struct exprmap new;
+    new.exprs = malloc(new_size * sizeof(uint64_t));
+    new.deref_labels = malloc(new_size * sizeof(uint64_t));
+    new.n_exprs = old_size;
+    memcpy(new.exprs, old.exprs, old_size * sizeof(uint64_t));
+    memcpy(new.deref_labels, old.deref_labels, old_size * sizeof(uint64_t));
+    return new;
 }
 
 struct exprmap insert_exprmap(const struct exprmap old, uint64_t expr, uint64_t deref_label) {
-    assert(!"unimplemented");
+    if (lookup_exprmap(old, expr)) {
+        return old;
+    }
+    struct exprmap new = copy_exprmap(old, old.n_exprs, old.n_exprs + 1);
+    new.exprs[new.n_exprs] = expr;
+    new.deref_labels[new.n_exprs] = deref_label;
+    new.n_exprs++;
+    return new;
 }
 
 struct exprmap remove_exprmap(const struct exprmap old, uint64_t expr) {
-    assert(!"unimplemented");
+    struct exprmap new = copy_exprmap(old, old.n_exprs, old.n_exprs);
+    for (int i = 0; i < new.n_exprs; i++) {
+        if (new.exprs[i] == expr) {
+            new.n_exprs--;
+            new.exprs[i] = new.exprs[new.n_exprs];
+            new.deref_labels[i] = new.deref_labels[new.n_exprs];
+            break;
+        }
+    }
+    return new;
 }
 
 int subset_exprmap(const struct exprmap small, const struct exprmap big) {
-    assert(!"unimplemented");
+    for (int i = 0; i < small.n_exprs; i++) {
+        int found = 0;
+        for (int j = 0; j < big.n_exprs; j++) {
+            if (small.exprs[i] == big.exprs[j]) {
+                found = 1;
+                break;
+            }
+        }
+        if (!found) {
+            return 0;
+        }
+    }
+    return 1;
 }
 
 struct exprmap intersect_exprmaps(const struct exprmap small, const struct exprmap big) {
-    assert(!"unimplemented");
+    struct exprmap new = copy_exprmap(small, 0, small.n_exprs);
+    for (int i = 0; i < small.n_exprs; i++) {
+        for (int j = 0; j < big.n_exprs; j++) {
+            if (small.exprs[i] == big.exprs[j]) {
+                new.exprs[new.n_exprs] = small.exprs[i];
+                new.deref_labels[new.n_exprs] = small.deref_labels[i];
+                new.n_exprs++;
+                break;
+            }
+        }
+    }
+    return new;
 }
 
 struct instr {
@@ -61,19 +115,36 @@ void visit(struct instr *instr, struct exprmap derefed) {
     //     @derefed along this path
     // should be about 10loc total; use the data structure operations you
     // implemented above!
-    assert(!"unimplemented");
-    derefed = instr->always_derefed; // feel free to remove if your sln doesn't need this
+    if (instr == NULL) {
+        return;
+    }
+    if (!instr->visited) {
+        instr->visited = 1;
+        instr->always_derefed = derefed;
+    }
+    else if (subset_exprmap(instr->always_derefed, derefed)) {
+        return;
+    }
+    else {
+        instr->always_derefed = intersect_exprmaps(instr->always_derefed, derefed);
+    }
 
     // now actually process the instruction:
     // (1) if it's a kill, then we no longer know anything about instr->args[0]
     // (2) if it's a deref, then we should remember that instr->args[0] has
     //     been derefed for the remainder of this path (at least, until it's
     //     killed later on)
-    assert(!"unimplemented");
+    if (instr->opcode == OPCODE_KILL) {
+        instr->always_derefed = remove_exprmap(instr->always_derefed, instr->args[0]);
+    }
+    else if (instr->opcode == OPCODE_DEREF) {
+        instr->always_derefed = insert_exprmap(instr->always_derefed, instr->args[0], instr->label);
+    }
 
     // now recurse on the possible next-instructions. we visit nexts[1] first
     // out of superstition (it's more likely to be NULL and we want to do the
     // most work in the tail recursive call)
+    derefed = instr->always_derefed; // feel free to remove if your sln doesn't need this
     visit(instr->nexts[1], derefed);
     visit(instr->nexts[0], derefed);
 }

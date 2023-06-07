@@ -96,8 +96,24 @@ void visit_stmt(struct lexrange range, struct meta meta) {
         // you'll probably need three labels: cond, body, and exit
         // the condition expression is [lm+2, end_paren)
         // the body is [end_paren+1, body_end)
-        assert(!"unimplemented");
+        uint64_t cond = BUMP++;
+        uint64_t body = BUMP++;
+        uint64_t exit = BUMP++;
+        
+        nop_labelled(cond);
+        submeta = meta;
+        submeta.true_branch = body;
+        submeta.false_branch = exit;
+        visit_expr(torange(lm + 2, end_paren), submeta);
 
+        nop_labelled(body);
+        submeta = meta;
+        submeta.continue_to = cond;
+        submeta.break_to = exit;
+        visit_stmt(torange(end_paren + 1, body_end), submeta);
+        goto_(cond);
+
+        nop_labelled(exit);
         return visit_stmt(torange(body_end, range.rm), meta);
     } else if (LEXSTR(lm, "if")) {
         if (!end_paren || !body_end) goto fail;
@@ -105,33 +121,58 @@ void visit_stmt(struct lexrange range, struct meta meta) {
         // you'll probably need three labels: then, else_, and exit
         // the condition expression is [lm+2, end_paren)
         // the body is [end_paren+1, body_end)
-        assert(!"unimplemented");
+        uint64_t then = BUMP++;
+        uint64_t else_ = BUMP++;
+        uint64_t exit = BUMP++;
 
+        // cond
+        submeta = meta;
+        submeta.true_branch = then;
+        submeta.false_branch = else_;
+        visit_expr(torange(lm + 2, end_paren), submeta);
+
+        nop_labelled(then);
+        visit_stmt(torange(end_paren + 1, body_end), meta);
+        goto_(exit);
+
+        nop_labelled(else_);
+        
         if (LEXSTR(body_end, "else")) {
             struct lexeme *else_end = match_body(body_end + 1);
 
             // the else body is [body_end + 1, else_end)
-            assert(!"unimplemented");
+            visit_stmt(torange(body_end + 1, else_end), meta);
 
             // the end of the whole statement is the end of the body
             body_end = else_end;
         }
 
-        // in case you need something here ...
-        assert(!"unimplemented");
-
+        nop_labelled(exit);
         return visit_stmt(torange(body_end, range.rm), meta);
     } else if (LEXSTR(lm, "do")) {
         if (!(body_end = match_body(lm + 1))) goto fail;
 
         // you'll probably need cond, body, and exit
         // the body is [lm + 1, body_end)
-        assert(!"unimplemented");
+        uint64_t cond = BUMP++;
+        uint64_t body = BUMP++;
+        uint64_t exit = BUMP++;
+
+        nop_labelled(body);
+        submeta = meta;
+        submeta.continue_to = cond;
+        submeta.break_to = exit;
+        visit_stmt(torange(lm + 1, body_end), submeta);
 
         end_paren = find(body_end + 1, NULL, ")");
         // the condition is [body_end, end_paren)
-        assert(!"unimplemented");
+        nop_labelled(cond);
+        submeta = meta;
+        submeta.true_branch = body;
+        submeta.false_branch = exit;
+        visit_expr(torange(body_end + 1, end_paren), submeta);
 
+        nop_labelled(exit);
         return visit_stmt(torange(end_paren + 1, range.rm), meta);
     } else if (LEXSTR(lm, "switch")) {
         /****** NASTY, IGNORE ME ******/
@@ -183,9 +224,12 @@ void visit_stmt(struct lexrange range, struct meta meta) {
         goto_(meta.continue_to);
         return visit_stmt(torange(lm + 2, range.rm), meta);
     } else if (LEXSTR(lm, "break")) {
-        assert(!"unimplemented");
+        goto_(meta.break_to);
+        return visit_stmt(torange(lm + 2, range.rm), meta);
     } else if (LEXSTR(lm, "return")) {
-        assert(!"unimplemented");
+        struct lexeme *semi = find(lm + 1, NULL, ";");
+        visit_expr(torange(lm + 1, semi), meta);
+        return visit_stmt(torange(semi + 1, range.rm), meta);
     } else if (LEXSTR(lm, "goto")) {
         for (struct lexeme *l = meta.fn_start; l != meta.fn_end; l++) {
             if (LEXSTR(l, (lm + 1)->string) && LEXSTR(l + 1, ":")) {
@@ -294,11 +338,11 @@ void visit_expr(struct lexrange range, struct meta meta) {
             return visit_expr(torange(l, r), meta); }
             NEGATE(op + 1, rm);
         } else if (LEXSTR(op, "==") && rhs_null) {
-            assert(!"unimplemented");
+            NEGATE(lm, op);
         } else if (LEXSTR(op, "!=") && lhs_null) {
             return visit_expr(torange(op + 1, rm), og_meta);
         } else if (LEXSTR(op, "!=") && rhs_null) {
-            assert(!"unimplemented");
+            return visit_expr(torange(lm, op), og_meta);
         } else if (LEXSTR(op, "&&")) {
             uint64_t first_true = BUMP++,
                      either_false = og_meta.false_branch ? og_meta.false_branch : BUMP++;
@@ -310,7 +354,15 @@ void visit_expr(struct lexrange range, struct meta meta) {
             if (!og_meta.false_branch)
                 nop_labelled(either_false);
         } else if (LEXSTR(op, "||")) {
-            assert(!"unimplemented");
+            uint64_t exit = BUMP++;
+            uint64_t next = BUMP++;
+            meta.true_branch = og_meta.true_branch ? og_meta.true_branch : exit;
+            meta.false_branch = next;
+            visit_expr(torange(lm, op), meta);
+            nop_labelled(next);
+            visit_expr(torange(op + 1, rm), og_meta);
+            nop_labelled(exit);
+
         } else if (lm != op && op != rm) {
             visit_expr(torange(lm, op), meta);
             visit_expr(torange(op + 1, rm), meta);
@@ -325,13 +377,13 @@ void visit_expr(struct lexrange range, struct meta meta) {
         if (LEXSTR(lm, "!"))
             NEGATE(lm + 1, rm);
         if (LEXSTR(lm, "*"))
-            assert(!"unimplemented");
+            deref(torange(lm + 1, rm));
         if (LEXSTR(lm, "&"))
-            assert(!"unimplemented");
+            kill(torange(lm + 1, rm));
         else
             visit_expr(torange(lm + 1, rm), meta);
         if (LEXSTR(lm, "++") || LEXSTR(lm, "--"))
-            assert(!"unimplemented");
+            kill(torange(lm + 1, rm));
     } else if (LEXSTR(rm - 1, "++") || LEXSTR(rm - 1, "--")) {
         assert(lm <= (rm - 1));
         kill(torange(lm, rm - 1));
@@ -345,7 +397,8 @@ void visit_expr(struct lexrange range, struct meta meta) {
     } else if (lm + 2 <= rm && LEXSTR(rm - 2, ".")) {
         visit_expr(torange(lm, rm - 2), meta);
     } else if (lm + 2 <= rm && LEXSTR(rm - 2, "->")) {
-        assert(!"unimplemented");
+        deref(torange(lm, rm - 2));
+        visit_expr(torange(lm, rm - 2), meta);
     } else if (LEXSTR(rm - 1, ")")) {
         /****** NASTY, IGNORE ME ******/
         struct lexeme *arg_start = find(rm - 1, lm, "(");
