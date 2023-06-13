@@ -4,6 +4,27 @@
 #include "cycle-count.h"
 #include "cycle-util.h"
 
+enum {
+    GPIO_BASE = 0x20200000,
+    gpio_set0  = (GPIO_BASE + 0x1C),
+    gpio_clr0  = (GPIO_BASE + 0x28),
+    gpio_lev0  = (GPIO_BASE + 0x34),
+};
+static inline void gpio_set_on_raw(unsigned pin) {
+    *(volatile uint32_t*) gpio_set0 = 1 << pin;
+}
+static inline void gpio_set_off_raw(unsigned pin) {
+    *(volatile uint32_t*) gpio_clr0 = 1 << pin;
+}
+static inline void gpio_write_raw(unsigned pin, int v) {
+    if (v) {
+        *(volatile uint32_t*) gpio_set0 = 1 << pin;
+    }
+    else {
+        *(volatile uint32_t*) gpio_clr0 = 1 << pin;
+    }
+}
+
 // send N samples at <ncycle> cycles each in a simple way.
 // a bunch of error sources here.
 void test_gen(unsigned pin, unsigned N, unsigned ncycle) {
@@ -12,7 +33,7 @@ void test_gen(unsigned pin, unsigned N, unsigned ncycle) {
 
     unsigned v = 1;
     for(unsigned i = 0; i < N; i++) {
-        gpio_write(pin, v);
+        gpio_write_raw(pin, v);
         v = 1-v;
         ndelay += ncycle;
         // we are not sure: are we delaying too much or too little?

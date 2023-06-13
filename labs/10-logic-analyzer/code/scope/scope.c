@@ -35,7 +35,10 @@ static inline void gpio_set_off_raw(unsigned pin) {
     *(volatile uint32_t*) gpio_clr0 = 1 << pin;
 }
 static inline int gpio_read_raw(unsigned pin) {
-    return ((*(volatile uint32_t*) gpio_lev0) >> pin) & 1;
+    dev_barrier();
+    int x = ((*(volatile uint32_t*) gpio_lev0) >> pin) & 1;
+    dev_barrier();
+    return x;
 }
 
 static unsigned start;
@@ -59,6 +62,7 @@ unsigned scope(unsigned pin, log_ent_t *l, unsigned n_max, unsigned max_cycles) 
 
     // sample until record max samples or until exceed <max_cycles>
     unsigned n = 0;
+    printk("starting loop\n");
     while(run) {      
 
         // write this code first: record sample when the pin
@@ -68,28 +72,29 @@ unsigned scope(unsigned pin, log_ent_t *l, unsigned n_max, unsigned max_cycles) 
             v0 = v1;
             n++;
 
-            if (n == n_max) {
-                return n;
-            }
+            // if (n == n_max) {
+            //     return n;
+            // }
         }
     }
+    printk("Returned from scope: %d\n", n);
     return n;
 }
 
 void interrupt_vector(unsigned pc) {
-    printk("In interrupt\n");
     dev_barrier();
     if(((*(volatile uint32_t*) IRQ_basic_pending) & RPI_BASIC_ARM_TIMER_IRQ) == 0)
         return;
     *(volatile uint32_t*) arm_timer_IRQClear = 1;
-    dev_barrier();    
 
     if (run) {
-        printk("In interrupt\n");
+        // printk("In interrupt\n");
         if (cycle_cnt_read() - start >= max_cyc) {
+            printk("run is 0\n");
             run = 0;
         }
     }
+    dev_barrier();    
 }
 
 void notmain(void) {
@@ -114,7 +119,7 @@ void notmain(void) {
 
     // run 4 times before rebooting: makes things easier.
     // you can get rid of this.
-    for(int i = 0; i < 4; i++) {
+    for(int i = 0; i < 1; i++) {
         unsigned n = scope(pin, log, MAXSAMPLES, sec_to_cycle(1));
         dump_samples(log, n, CYCLE_PER_FLIP);
     }

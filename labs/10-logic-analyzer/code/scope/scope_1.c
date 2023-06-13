@@ -49,7 +49,7 @@ scope(unsigned pin, log_ent_t *l, unsigned n_max, unsigned max_cycles) {
 
     // sample until record max samples or until exceed <max_cycles>
     unsigned n = 0;
-    for(; n < n_max;) {      
+    while(1) {      
         t = cycle_cnt_read();
 
         // write this code first: record sample when the pin
@@ -77,6 +77,7 @@ void notmain(void) {
 
     // make sure to init cycle counter hw.
     cycle_cnt_init();
+    caches_enable();
 
 #   define MAXSAMPLES 32
     log_ent_t log[MAXSAMPLES];
