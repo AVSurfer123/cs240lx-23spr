@@ -2,6 +2,7 @@
 #include "mpu-6050.h"
 #include "rpi-math.h"
 #include "quaternion.h"
+#include "stepper.h"
 
 extern quaternion_t q_est;
 
@@ -84,10 +85,11 @@ angles_t calc_tilt(angles_t accel) {
 
 void notmain() {
     caches_enable();
+    stepper_init();
     printk("Initializing IMU...\n");
     accel_t a;
     gyro_t g;
-    imu_init(&a, &g, 0);
+    imu_init(&a, &g, 1);
 
     printk("Calculating IMU bias...\n");
     imu_xyz_t accel_bias = calc_bias(&a, 0);
@@ -125,9 +127,25 @@ void notmain() {
         angles_t euler = eulerAngles(q_est);
         // angles_t tilt = calc_tilt(accel_clean);
         // printk("Pitch: %f\n", euler.y);
-        angles_print("Euler", euler);
+        // angles_print("Euler", euler);
         // angles_print("Tilt", tilt);
-        
+
+        // Threshold +/- 2 degrees
+        float val = euler.y;
+        // float val = tilt.x;
+        if (fabs(val) > 2) {
+            if (fabs(total_error) > 500) {
+                total_error = 0;
+            }
+            total_error += val * .001;
+            double power = kp * val + ki * total_error;
+            power = fmin(1, fmax(-1, power));
+            // printk("Power %f\n", power);
+            run_stepper(power);
+        }
+        else {
+            total_error = 0;
+        }
         // uint32_t end = timer_get_usec();
         // printk("Iter time: %d\n", end - start);
     }

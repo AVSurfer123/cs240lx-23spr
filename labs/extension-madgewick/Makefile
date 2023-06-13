@@ -1,4 +1,4 @@
-PROGS = read_imu.c test_stepper.c
+PROGS = read_imu.c test_stepper.c gimbal.c
 
 COMMON_SRC = quaternion.c stepper.c
 

@@ -64,7 +64,7 @@ void step(int resolution, double speed) {
     gpio_write(MS1, bit_get(order, 2));
     gpio_write(MS2, bit_get(order, 1));
     gpio_write(MS3, bit_get(order, 0));
-    printk("MS %d %d %d %d\n", gpio_read(MS1), gpio_read(MS2), gpio_read(MS3));
+    // printk("MS %d %d %d %d\n", gpio_read(MS1), gpio_read(MS2), gpio_read(MS3));
 
     if (speed > 0) {
         gpio_set_on(DIR);
@@ -75,8 +75,8 @@ void step(int resolution, double speed) {
 
     for (int i = 0; i < resolution; i++) {
         gpio_set_on(STEP);
-        delay_us(4000);
+        delay_us(1000);
         gpio_set_off(STEP);
-        delay_us(4000);
+        delay_us(1000);
     }
 }
