@@ -13,6 +13,7 @@ typedef enum {
 // see images/a4988_pinout.png
 typedef struct {
     int step_count;
+    int resolution;
     unsigned dir;
     unsigned step;
     unsigned MS1;
@@ -32,6 +33,8 @@ void stepper_step_forward(stepper_t * stepper);
 
 void stepper_step_backward(stepper_t * stepper);
 
+void stepper_freq(stepper_t* stepper, double freq);
+
 int stepper_get_position_in_steps(stepper_t * stepper);
 
-#endif 
+#endif

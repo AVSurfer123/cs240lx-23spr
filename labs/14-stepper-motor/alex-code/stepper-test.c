@@ -4,18 +4,18 @@
 #include "math-helpers.h"
 
 // stepper pins
-#define DIR 21
-#define STEP 20
-#define MS1 13
-#define MS2 19
-#define MS3 26
+#define DIR 16
+#define STEP 17
+#define MS1 6
+#define MS2 5
+#define MS3 7
 
 // play around with this!
-#define DELAY_BETWEEN_STEPS_USEC 10000 
+#define DELAY_BETWEEN_STEPS_USEC 2000
 
 void test_stepper(){
     printk("testing stepper\n");
-    
+
     stepper_t * stepper = stepper_init(DIR, STEP);
 
     for(int i = 0; i < 100; i++){
@@ -46,7 +46,7 @@ void test_stepper_with_interrupts(){
 
     while(!stepper_int_is_free(stepper)){/*wait*/}
     unsigned end_time_usec  = timer_get_usec();
-    printk("stepper pos %d. Time it took: %d usec (expected %d, off by: %d)\n", stepper_int_get_position_in_steps(stepper), 
+    printk("stepper pos %d. Time it took: %d usec (expected %d, off by: %d)\n", stepper_int_get_position_in_steps(stepper),
             (end_time_usec - start_time_usec), goal*USEC_BETWEEN_STEPS, goal*USEC_BETWEEN_STEPS - (end_time_usec - start_time_usec));
 
     // test different speeds

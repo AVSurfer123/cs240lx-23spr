@@ -2,21 +2,21 @@
 #include "rpi.h"
 #ifndef __Q_H__
 #define __Q_H__
-#ifndef E
-#	error "Client must define the Q datatype <E>"
+#ifndef E_t
+#	error "Client must define the Q datatype <E_t>"
 #endif
 
 typedef struct Q {
-    E *head, *tail;
+    E_t *head, *tail;
     unsigned cnt;
 } Q_t;
 
 // used for iteration.
-static E *Q_start(Q_t *q)   { return q->head; }
-static E *Q_next(E *e)      { return e->next; }
+static E_t *Q_start(Q_t *q)   { return q->head; }
+static E_t *Q_next(E_t *e)      { return e->next; }
 static unsigned Q_nelem(Q_t *q) { return q->cnt; }
 
-static int Q_empty(Q_t *q)  { 
+static int Q_empty(Q_t *q)  {
     if(q->head)
         return 0;
     // if(Q_nelem(q) != 0){
@@ -28,10 +28,10 @@ static int Q_empty(Q_t *q)  {
 }
 
 // remove from front of list.
-static E *Q_pop(Q_t *q) {
+static E_t *Q_pop(Q_t *q) {
     demand(q, bad input);
 
-    E *e = q->head;
+    E_t *e = q->head;
     if(!e) {
         assert(Q_empty(q));
         return 0;
@@ -44,10 +44,10 @@ static E *Q_pop(Q_t *q) {
 }
 
 // insert at tail. (for FIFO)
-static void Q_append(Q_t *q, E *e) {
+static void Q_append(Q_t *q, E_t *e) {
     e->next = 0;
     q->cnt++;
-    if(!q->tail) 
+    if(!q->tail)
         q->head = q->tail = e;
     else {
         q->tail->next = e;
@@ -56,7 +56,7 @@ static void Q_append(Q_t *q, E *e) {
 }
 
 // insert at head (for LIFO)
-static void Q_push(Q_t *q, E *e) {
+static void Q_push(Q_t *q, E_t *e) {
     q->cnt++;
     e->next = q->head;
     q->head = e;
@@ -65,7 +65,7 @@ static void Q_push(Q_t *q, E *e) {
 }
 
 // insert <e_new> after <e>: <e>=<null> means put at head.
-static void Q_insert_after(Q_t *q, E *e, E *e_new) {
+static void Q_insert_after(Q_t *q, E_t *e, E_t *e_new) {
     if(!e)
         Q_push(q,e_new);
     else if(q->tail == e)

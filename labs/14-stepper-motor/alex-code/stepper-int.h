@@ -17,13 +17,15 @@ typedef enum {
 
 typedef struct stepper_position_t {
     struct stepper_position_t * next;
+    int start_steps;
     int goal_steps;
+    unsigned start_time_usec;
     unsigned usec_between_steps;
     unsigned usec_at_prev_step;
     stepper_position_status_t status;
 } stepper_position_t;
 
-#define E stepper_position_t
+#define E_t stepper_position_t
 #include "Q.h"
 
 typedef struct {
